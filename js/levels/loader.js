@@ -1,9 +1,11 @@
 // js/levels/loader.js
 import { Block } from "../entities/block.js";
 import { Mario } from "../entities/mario.js";
-// later: Goomba, Coin...
+import { QuestionBlock } from "../entities/questionBlock.js";
+import { Coin } from "../entities/coin.js";
+import { Pipe } from "../entities/pipe.js";
 
-const TILE_SIZE = 16;
+import { TILE_SIZE } from "../utils/constants.js";
 
 export function loadLevel(levelData) {
   const entities = [];
@@ -20,7 +22,8 @@ export function loadLevel(levelData) {
 
       switch (symbol) {
         case "m":
-          mario = new Mario(x, y);
+          // Mario: adjust so his feet rest on this tile
+          mario = new Mario(x, y - TILE_SIZE);
           entities.push(mario);
           break;
 
@@ -28,16 +31,20 @@ export function loadLevel(levelData) {
           entities.push(new Block(x, y, TILE_SIZE));
           break;
 
-        // case "g":
-        //   entities.push(new Goomba(x, y));
-        //   break;
+        case "q":
+          entities.push(new QuestionBlock(x, y, TILE_SIZE));
+          break;
 
-        // case "c":
-        //   entities.push(new Coin(x, y));
-        //   break;
+        case "c":
+          entities.push(new Coin(x, y, TILE_SIZE));
+          break;
+
+        case "p":
+          entities.push(new Pipe(x, y, TILE_SIZE));
+          break;
 
         default:
-          // empty space
+          // Empty
           break;
       }
     }
@@ -45,3 +52,14 @@ export function loadLevel(levelData) {
 
   return { entities, mario };
 }
+
+
+/*
+
+m = Mario
+b = Block
+q = quesion Block
+c = coin
+p = pipe
+
+*/
