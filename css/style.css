@@ -1,0 +1,16 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  background: #5c94fc; /* Mario sky blue */
+  height: 100%;
+  overflow: hidden;
+}
+
+#gameCanvas {
+  display: block;
+  margin: 0 auto;
+  background: #5c94fc;
+  image-rendering: pixelated; /* keeps pixel art sharp */
+  border: black;
+
+}
