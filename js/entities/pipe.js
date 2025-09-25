@@ -1,5 +1,6 @@
 // js/entities/pipe.js
 import { Entity } from "./entity.js";
+import { RENDER_SCALE } from "../utils/constants.js";
 
 export class Pipe extends Entity {
   constructor(x, y, size = 16) {
@@ -12,8 +13,14 @@ export class Pipe extends Entity {
   }
 
   render(ctx) {
+    if (this.collected) return;
     ctx.fillStyle = "green";
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.fillRect(
+      this.x * RENDER_SCALE,
+      this.y * RENDER_SCALE,
+      this.width * RENDER_SCALE,
+      this.height * RENDER_SCALE
+    );
   }
 }
 

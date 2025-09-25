@@ -8,27 +8,51 @@ const ctx = canvas.getContext("2d");
 
 let lastTime = 0;
 
+
+let gameState = {
+  score: 0,
+  coins: 0,
+  lives: 3,
+  time: 400 
+};
+
+
+
 // Load the level
 const { entities, mario } = loadLevel(level1_1);
 
 function update(deltaTime) {
-  // Reset ground state before checks
-  mario.onGround = false;
-
   entities.forEach(e => e.update(deltaTime));
 
-  // Mario vs nearby solid entities
+  mario.onGround = false;
+
+  // Solid collisions
   entities.forEach(e => {
     if (e !== mario && e.isSolid && isNear(mario, e, 400)) {
       if (isColliding(mario, e)) {
         const result = resolveCollision(mario, e);
-        if (result && result.axis === "y" && result.other.isSolid) {
-          // Mario is standing on something
+        if (result && result.axis === "y" && result.side === "bottom") {
           mario.onGround = true;
+          mario.isJumping = false;
         }
       }
     }
   });
+
+  // Coin collection
+  entities.forEach(e => {
+    if (e.constructor.name === "Coin" && !e.collected) {
+      if (isColliding(mario, e)) {
+        e.collected = true;
+        gameState.coins += 1;
+        gameState.score += 200; // classic Mario: 200 points per coin
+      }
+    }
+  });
+
+  // Timer update (smooth)
+  gameState.time -= deltaTime;
+  if (gameState.time < 0) gameState.time = 0;
 }
 
 function render() {
@@ -36,16 +60,38 @@ function render() {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   entities.forEach(e => e.render(ctx));
+
+  renderUI();
 }
 
 function gameLoop(timestamp) {
   const deltaTime = (timestamp - lastTime) / 1000;
   lastTime = timestamp;
-
   update(deltaTime);
   render();
-
   requestAnimationFrame(gameLoop);
 }
+
+function renderUI() {
+  ctx.fillStyle = "Black";
+  ctx.fillRect(0,0,canvas.width, 50)
+
+  ctx.fillStyle = "white";
+  ctx.font = "16px Arial";
+
+  ctx.fillText(`MARIO`, (canvas.width/4)*0+20, 20);
+  ctx.fillText(gameState.score.toString().padStart(6, "0"), (canvas.width/4)*0+20, 40);
+
+  ctx.fillText(`COINS`, (canvas.width/4)*1+20, 20);
+  ctx.fillText(`x ${gameState.coins}`, (canvas.width/4)*1+20, 40);
+
+  ctx.fillText(`LIVES`, (canvas.width/4)*2+20, 20);
+  ctx.fillText(gameState.lives, (canvas.width/4)*2+20, 40);
+
+  ctx.fillText(`TIME`, (canvas.width/4)*3+20, 20);
+  ctx.fillText(Math.floor(gameState.time), (canvas.width/4)*3+20, 40); // only whole numbers
+}
+
+
 
 requestAnimationFrame(gameLoop);

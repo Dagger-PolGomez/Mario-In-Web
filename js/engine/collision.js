@@ -33,20 +33,20 @@ export function resolveCollision(mover, block) {
       if (dx > 0) mover.x += overlapX;
       else mover.x -= overlapX;
       mover.vx = 0;
-      return { axis: "x", other: block };
+      return { axis: "x", side: dx > 0 ? "right" : "left", other: block };
     } else {
       // Vertical push
       if (dy > 0) {
         // Pushed down (head bump)
         mover.y += overlapY;
         mover.vy = 0;
+        return { axis: "y", side: "top", other: block };
       } else {
-        // Landed on top
+        // Landed on top of block
         mover.y -= overlapY;
         mover.vy = 0;
-        mover.onGround = true; // tell Mario he can jump
+        return { axis: "y", side: "bottom", other: block };
       }
-      return { axis: "y", other: block };
     }
   }
 
