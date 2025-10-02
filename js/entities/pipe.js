@@ -2,6 +2,7 @@
 import { Entity } from "./entity.js";
 import { RENDER_SCALE } from "../utils/constants.js";
 
+
 export class Pipe extends Entity {
   constructor(x, y, size = 16) {
     super(x, y, size, size);

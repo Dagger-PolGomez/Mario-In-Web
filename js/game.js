@@ -2,6 +2,7 @@
 import { isColliding, resolveCollision, isNear } from "./engine/collision.js";
 import { loadLevel } from "./levels/loader.js";
 import { level1_1 } from "./levels/level1_1.js";
+import { RENDER_SCALE } from "./utils/constants.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -16,6 +17,12 @@ let gameState = {
   time: 400 
 };
 
+let camera = {
+  x: 0,      // left edge of camera in world coords
+  y: 0,      // for now always 0 (no vertical scrolling)
+  width: canvas.width / RENDER_SCALE,
+  height: canvas.height / RENDER_SCALE
+};
 
 
 // Load the level
@@ -53,6 +60,17 @@ function update(deltaTime) {
   // Timer update (smooth)
   gameState.time -= deltaTime;
   if (gameState.time < 0) gameState.time = 0;
+
+
+  // Move camera forward if Mario passes the right edge
+  if (mario.x > camera.x + camera.width / 2) {
+    camera.x = mario.x - camera.width / 2;
+  }
+
+  // Clamp so camera never moves left
+  if (camera.x < 0) {
+    camera.x = 0;
+}
 }
 
 function render() {
@@ -90,6 +108,8 @@ function renderUI() {
 
   ctx.fillText(`TIME`, (canvas.width/4)*3+20, 20);
   ctx.fillText(Math.floor(gameState.time), (canvas.width/4)*3+20, 40); // only whole numbers
+  console.log(camera.x)
+
 }
 
 

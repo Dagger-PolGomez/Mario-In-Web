@@ -6,3 +6,5 @@ export const JUMP_FORCE = -300;   // initial velocity upwards
 export const JUMP_HOLD = -200;    // extra boost while holding
 export const MAX_JUMP_TIME = 0.2; // seconds you can hold jump
 export const MOVE_SPEED = 100;
+
+
