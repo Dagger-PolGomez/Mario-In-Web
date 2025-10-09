@@ -52,7 +52,7 @@ function update(deltaTime) {
       if (isColliding(mario, e)) {
         e.collected = true;
         gameState.coins += 1;
-        gameState.score += 200; // classic Mario: 200 points per coin
+        gameState.score += 200; //Points
       }
     }
   });
@@ -63,9 +63,10 @@ function update(deltaTime) {
 
 
   // Move camera forward if Mario passes the right edge
-  if (mario.x > camera.x + camera.width / 2) {
-    camera.x = mario.x - camera.width / 2;
+  if (mario.x-camera.x >  camera.width / 2) {
+    camera.x += 1;
   }
+
 
   // Clamp so camera never moves left
   if (camera.x < 0) {
@@ -75,11 +76,17 @@ function update(deltaTime) {
 
 function render() {
   ctx.fillStyle = "#5c94fc";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillRect(0, 0, canvas.width*500, canvas.height);
+ 
+  ctx.save();
+
+  ctx.translate(-camera.x,0);
+
 
   entities.forEach(e => e.render(ctx));
-
+  ctx.restore();
   renderUI();
+
 }
 
 function gameLoop(timestamp) {
@@ -91,6 +98,8 @@ function gameLoop(timestamp) {
 }
 
 function renderUI() {
+
+  ctx.restore();
   ctx.fillStyle = "Black";
   ctx.fillRect(0,0,canvas.width, 50)
 
@@ -108,7 +117,7 @@ function renderUI() {
 
   ctx.fillText(`TIME`, (canvas.width/4)*3+20, 20);
   ctx.fillText(Math.floor(gameState.time), (canvas.width/4)*3+20, 40); // only whole numbers
-  console.log(camera.x)
+
 
 }
 
