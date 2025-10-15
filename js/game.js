@@ -64,7 +64,7 @@ function update(deltaTime) {
 
   // Move camera forward if Mario passes the right edge
   if (mario.x-camera.x >  camera.width / 2) {
-    camera.x += 1;
+    camera.x += RENDER_SCALE;
   }
 
 
@@ -80,7 +80,7 @@ function render() {
  
   ctx.save();
 
-  ctx.translate(-camera.x,0);
+  ctx.translate(-camera.x*RENDER_SCALE,0);
 
 
   entities.forEach(e => e.render(ctx));
