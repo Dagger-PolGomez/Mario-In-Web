@@ -3,7 +3,9 @@ import { Block } from "../entities/block.js";
 import { Mario } from "../entities/mario.js";
 import { QuestionBlock } from "../entities/questionBlock.js";
 import { Coin } from "../entities/coin.js";
-import { Pipe } from "../entities/pipe.js";
+import { PipeLT } from "../entities/pipeLT.js";
+import { PipeRT } from "../entities/pipeRT.js";
+
 
 import { TILE_SIZE } from "../utils/constants.js";
 
@@ -39,8 +41,12 @@ export function loadLevel(levelData) {
           entities.push(new Coin(x, y, TILE_SIZE));
           break;
 
-        case "p":
-          entities.push(new Pipe(x, y, TILE_SIZE));
+        case "pLT":
+          entities.push(new PipeLT(x, y, TILE_SIZE));
+          break;
+          
+        case "pRT":
+          entities.push(new PipeRT(x, y, TILE_SIZE));
           break;
 
         default:

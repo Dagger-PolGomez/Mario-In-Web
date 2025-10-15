@@ -1,8 +1,9 @@
-// js/entities/block.js
+// js/entities/pipe.js
 import { Entity } from "./entity.js";
 import { RENDER_SCALE } from "../utils/constants.js";
 
-export class Block extends Entity {
+
+export class Pipe extends Entity {
   constructor(x, y, size = 16) {
     super(x, y, size, size);
     this.isSolid = true;
@@ -13,11 +14,9 @@ export class Block extends Entity {
   }
 
   render(ctx,img) {
-    img.src = "./media/BlocksSpriteSheet.png"
-    ctx.drawImage(img,
-      this.SSx*160,this.SSy*160,
-      (this.SSx+1)*160,(this.SSy+1)*160,
-
+    if (this.collected) return;
+    ctx.fillStyle = "green";
+    ctx.fillRect(
       this.x * RENDER_SCALE,
       this.y * RENDER_SCALE,
       this.width * RENDER_SCALE,
@@ -25,3 +24,4 @@ export class Block extends Entity {
     );
   }
 }
+

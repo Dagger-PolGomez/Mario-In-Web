@@ -10,6 +10,11 @@ export class Entity {
     this.vx = 0; // horizontal velocity
     this.vy = 0; // vertical velocity
     this.isAlive = true;
+
+
+    this.SSx = 0;
+    this.SSy = 0;
+
   }
 
   update(deltaTime) {
@@ -18,7 +23,7 @@ export class Entity {
     this.y += this.vy * deltaTime;
   }
 
-  render(ctx) {
+  render(ctx,img) {
     // Placeholder render (override in subclasses)
     ctx.fillStyle = "black";
     ctx.fillRect(this.x, this.y, this.width, this.height);

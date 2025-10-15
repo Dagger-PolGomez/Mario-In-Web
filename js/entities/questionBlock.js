@@ -11,7 +11,7 @@ export class QuestionBlock extends Entity {
     // Static
   }
 
-  render(ctx) {
+  render(ctx,img) {
     const drawX = this.x * RENDER_SCALE;
     const drawY = this.y * RENDER_SCALE;
     const drawW = this.width * RENDER_SCALE;

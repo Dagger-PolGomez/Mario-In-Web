@@ -6,6 +6,7 @@ import { RENDER_SCALE } from "./utils/constants.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+const img  = new Image();
 
 let lastTime = 0;
 
@@ -83,7 +84,7 @@ function render() {
   ctx.translate(-camera.x*RENDER_SCALE,0);
 
 
-  entities.forEach(e => e.render(ctx));
+  entities.forEach(e => e.render(ctx,img));
   ctx.restore();
   renderUI();
 
@@ -124,3 +125,14 @@ function renderUI() {
 
 
 requestAnimationFrame(gameLoop);
+
+window.onload = function () {
+    let canvas = document.getElementById("gameCanvas");
+    let ctx = canvas.getContext("2d");
+
+    var img = new Image();
+
+
+    console.log(img.src);
+};
+

@@ -6,32 +6,29 @@ export class Coin extends Entity {
     super(x, y, size, size);
     this.isSolid = false;
     this.collected = false;
+    this.SSx = 2;
+    this.SSy = 2;
   }
 
   update(deltaTime) {
     // Could animate later
   }
 
-  render(ctx) {
+  render(ctx,img) {
     if (this.collected) return;
 
-    const drawX = this.x * RENDER_SCALE;
-    const drawY = this.y * RENDER_SCALE;
-    const drawW = this.width * RENDER_SCALE;
-    const drawH = this.height * RENDER_SCALE;
+    img.src = "./media/BlocksSpriteSheet.png"
+    console.log(this.SSx)
+    ctx.drawImage(img,
+      this.SSx*160,
+      this.SSy*160,
+      160,
+      160,
 
-    ctx.fillStyle = "gold";
-    ctx.beginPath();
-    ctx.arc(
-      drawX + drawW / 2,
-      drawY + drawH / 2,
-      drawW / 2 - 4, // a little padding inside
-      0,
-      Math.PI * 2
+      this.x * RENDER_SCALE,
+      this.y * RENDER_SCALE,
+      this.width * RENDER_SCALE,
+      this.height * RENDER_SCALE
     );
-    ctx.fill();
-
-    ctx.strokeStyle = "orange";
-    ctx.stroke();
   }
 }
