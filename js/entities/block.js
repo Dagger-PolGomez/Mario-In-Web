@@ -6,6 +6,8 @@ export class Block extends Entity {
   constructor(x, y, size = 16) {
     super(x, y, size, size);
     this.isSolid = true;
+    this.SSx = 0;
+    this.SSy = 0;
   }
 
   update(deltaTime) {
@@ -16,8 +18,7 @@ export class Block extends Entity {
     img.src = "./media/BlocksSpriteSheet.png"
     ctx.drawImage(img,
       this.SSx*160,this.SSy*160,
-      (this.SSx+1)*160,(this.SSy+1)*160,
-
+      160,160,
       this.x * RENDER_SCALE,
       this.y * RENDER_SCALE,
       this.width * RENDER_SCALE,

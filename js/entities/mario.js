@@ -8,6 +8,14 @@ export class Mario extends Entity {
     this.onGround = false;
     this.isJumping = false;
     this.jumpTime = 0;
+    
+    this.SSx = 0;
+    this.SSy = 6;
+    
+    this.jumpSSx = 0;
+    this.jumpSSy = 10;
+
+    this.size = 2;
   }
 
   update(deltaTime) {
@@ -37,13 +45,30 @@ export class Mario extends Entity {
     super.update(deltaTime);
   }
 
-  render(ctx) {
-    ctx.fillStyle = "red";
-    ctx.fillRect(
+  render(ctx,img) {
+
+    img.src = "./media/BlocksSpriteSheet.png"
+
+    if(this.isJumping){
+    ctx.drawImage(img,
+      this.jumpSSx*160,this.jumpSSy*160,
+      160,320,
       this.x * RENDER_SCALE,
       this.y * RENDER_SCALE,
       this.width * RENDER_SCALE,
       this.height * RENDER_SCALE
     );
+    }
+    else{
+      ctx.drawImage(img,
+      this.SSx*160,this.SSy*160,
+      160,320,
+      this.x * RENDER_SCALE,
+      this.y * RENDER_SCALE,
+      this.width * RENDER_SCALE,
+      this.height * RENDER_SCALE
+    );
+    }
   }
+
 }

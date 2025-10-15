@@ -18,7 +18,6 @@ export class Coin extends Entity {
     if (this.collected) return;
 
     img.src = "./media/BlocksSpriteSheet.png"
-    console.log(this.SSx)
     ctx.drawImage(img,
       this.SSx*160,
       this.SSy*160,
