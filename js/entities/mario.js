@@ -7,6 +7,7 @@ export class Mario extends Entity {
     super(x, y, 16, 32); // logical size stays small
     this.onGround = false;
     this.isJumping = false;
+    this.running = false;
     this.jumpTime = 0;
     
     this.SSx = 0;
@@ -21,7 +22,8 @@ export class Mario extends Entity {
     this.frameRowCount = [1,3,1]
     this.frameRow = 0
 
-    this.curFrame = 0;
+    this.curFrame = 1;
+    this.framePerAnim = 0;
   }
 
   update(deltaTime) {
@@ -31,12 +33,31 @@ export class Mario extends Entity {
         this.vx = MOVE_SPEED;
         this.renderDir = 1;
         this.frameRow = 1;
+        this.framePerAnim ++;
+        if(this.framePerAnim > 5){
+          this.curFrame ++;
+          this.framePerAnim = 0;
+        }
+
+        if(this.curFrame >= this.frameRowCount[this.curFrame]){
+         this.curFrame = 0;
+        }
       }
     if (isKeyDown("ArrowLeft"))
       {
        this.vx = -MOVE_SPEED;
        this.renderDir = -1;
        this.frameRow = 1;
+       
+        this.framePerAnim ++;
+        if(this.framePerAnim > 5){
+          this.curFrame ++;
+          this.framePerAnim = 0;
+        }
+
+       if(this.curFrame > this.frameRowCount[this.curFrame]){
+         this.curFrame = 0;
+       }
     }
 
     if (isKeyDown("ArrowUp") && this.onGround) {
@@ -53,8 +74,14 @@ export class Mario extends Entity {
       }
     }
 
-    if (!isKeyDown("ArrowUp")) {
+    if (!isKeyDown("ArrowUp") && this.onGround) {
       this.isJumping = false;
+    }
+    if (isKeyDown("ArrowLeft") || isKeyDown("ArrowRight")) {
+      this.running = true;
+    }
+    else{
+      this.running = false;
     }
 
     this.vy += GRAVITY * deltaTime;
@@ -103,26 +130,53 @@ export class Mario extends Entity {
           this.y * RENDER_SCALE
         );
         ctx.scale(-1, 1);
-        ctx.drawImage(
-          img,
-          this.SSx * 160, this.SSy * 160,   // source x, y
-          160, 320,                         // source width, height
-          0, 0,                             // destination x, y (we've already translated)
-          this.width * RENDER_SCALE,
-          this.height * RENDER_SCALE
-        );
+        
+        if(this.running) //is running
+        {
+          ctx.drawImage(
+            img,
+            (this.SSx + this.curFrame) * 160 , (this.SSy+2) * 160,   // source x, y
+            160, 320,                         // source width, height
+            0, 0,                             // destination x, y (translated)
+            this.width * RENDER_SCALE,
+            this.height * RENDER_SCALE
+          );
+        }
+        else {
+          ctx.drawImage(
+            img,
+            (this.SSx) * 160 , (this.SSy) * 160,   // source x, y
+            160, 320,                         // source width, height
+            0, 0,                             // destination x, y (translated)
+            this.width * RENDER_SCALE,
+            this.height * RENDER_SCALE
+          );
+        }
 
         ctx.restore(); // Restore original transform
       }
       else{
+         if(this.running) //is running
+        {
         ctx.drawImage(img,
-        this.SSx*160,this.SSy*160,
+        (this.SSx+this.curFrame) * 160 , (this.SSy+2) * 160,   // source x, y
         160,320,
         this.x * RENDER_SCALE,
         this.y * RENDER_SCALE,
         this.width * RENDER_SCALE,
         this.height * RENDER_SCALE
-      );
+        );
+        }
+        else {
+          ctx.drawImage(img,
+          (this.SSx) * 160 , (this.SSy) * 160,   // source x, y
+          160,320,
+          this.x * RENDER_SCALE,
+          this.y * RENDER_SCALE,
+          this.width * RENDER_SCALE,
+          this.height * RENDER_SCALE
+          );
+        }
     }
     
     }

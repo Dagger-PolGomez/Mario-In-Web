@@ -7,8 +7,7 @@ import { PipeLT } from "../entities/pipeLT.js";
 import { PipeRT } from "../entities/pipeRT.js";
 import { PipeR } from "../entities/pipeR.js";
 import { PipeL } from "../entities/pipeL.js";
-
-
+import { Goomba } from "../entities/goomba.js";
 import { TILE_SIZE } from "../utils/constants.js";
 
 export function loadLevel(levelData) {
@@ -26,8 +25,7 @@ export function loadLevel(levelData) {
 
       switch (symbol) {
         case "m":
-          // Mario: adjust so his feet rest on this tile
-          mario = new Mario(x, y - TILE_SIZE);
+          mario = new Mario(x, y - TILE_SIZE); // feet on tile
           entities.push(mario);
           break;
 
@@ -46,11 +44,11 @@ export function loadLevel(levelData) {
         case "pLT":
           entities.push(new PipeLT(x, y, TILE_SIZE));
           break;
-          
+
         case "pRT":
           entities.push(new PipeRT(x, y, TILE_SIZE));
           break;
-        
+
         case "pR":
           entities.push(new PipeR(x, y, TILE_SIZE));
           break;
@@ -59,9 +57,12 @@ export function loadLevel(levelData) {
           entities.push(new PipeL(x, y, TILE_SIZE));
           break;
 
+        case "g":
+          // spawn Goomba with feet on this tile
+          entities.push(new Goomba(x, y - TILE_SIZE));
+          break;
 
         default:
-          // Empty
           break;
       }
     }
@@ -70,13 +71,11 @@ export function loadLevel(levelData) {
   return { entities, mario };
 }
 
-
 /*
-
 m = Mario
 b = Block
-q = quesion Block
-c = coin
-p = pipe
-
+q = Question Block
+c = Coin
+pLT/pRT/pL/pR = Pipe pieces
+g = Goomba
 */
