@@ -114,8 +114,12 @@ function update(deltaTime) {
           mario.onGround = false;
           mario.isJumping = true;
         } else {
-          // TODO: side or bottom contact → damage Mario (not implemented yet)
-          // For now, you can ignore or add knockback logic later.
+          const outcome = mario.takeDamage();
+          if (outcome === "dead") {
+            gameState.lives = Math.max(0, gameState.lives - 1);
+            // Optional: trigger a respawn or level reset here.
+            // For now Mario will play the death hop and you can reset after a delay.
+          }
         }
       }
     }

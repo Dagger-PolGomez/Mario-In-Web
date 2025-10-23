@@ -8,3 +8,5 @@ export const MAX_JUMP_TIME = 0.2; // seconds you can hold jump
 export const MOVE_SPEED = 100;
 
 
+export const INVINCIBLE_TIME = 1.5; // seconds of i-frames
+export const BLINK_RATE = 12;       // Hz (how fast to blink while invincible)
