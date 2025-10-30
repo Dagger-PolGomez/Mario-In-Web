@@ -209,25 +209,22 @@ export class Mario extends Entity {
   takeDamage() {
     if (this.isInvincible() || this.dead) return "ignored";
 
+    // Big → Small
     if (this.size === 2) {
-      // BIG -> SMALL
-      if (typeof this.setSize === "function") this.setSize(1);
-      else {
-        this.size = 1;
-        this.width = 16;
-        this.height = 16;
-      } // fallback
-      this.invincibleTimer = INVINCIBLE_TIME;
-      this.vy = JUMP_FORCE * 0.35; // little hop when hit
-      this.isJumping = true;
-      this.onGround = false;
+      this.setSize(1);
+      this.y += 8;
+
+      this.invincibleTimer = INVINCIBLE_TIME; // reuse your existing i-frames only
       return "shrunk";
-    } else {
-      // already SMALL -> DIE
+    }
+
+    // Small → Dead
+    else {
       this.dead = true;
       this.vx = 0;
-      this.vy = -220; // classic small death hop
+      this.vy = -220; // death hop
       return "dead";
     }
   }
+
 }

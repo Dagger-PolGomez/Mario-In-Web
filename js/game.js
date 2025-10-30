@@ -3,6 +3,8 @@ import { isColliding, resolveCollision, isNear } from "./engine/collision.js";
 import { loadLevel } from "./levels/loader.js";
 import { level1_1 } from "./levels/level1_1.js";
 import { RENDER_SCALE, JUMP_FORCE } from "./utils/constants.js";
+import { Mushroom } from "./entities/mushroom.js";
+
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -24,139 +26,217 @@ let camera = {
   height: canvas.height / RENDER_SCALE,
 };
 
+
+
+function isInActiveBand(e) {
+  // simple AABB check in logical units
+  return (e.x > camera.x - (camera.width-50)) && (e.x < camera.x + camera.width+50);
+}
+
+
+
 // Load the level
 const { entities, mario } = loadLevel(level1_1);
 
 function update(deltaTime) {
-  entities.forEach((e) => e.update(deltaTime));
-
-  mario.onGround = false;
-
-  // Solid collisions
+  // 0) Tick all entities (movement integration etc.)
   entities.forEach((e) => {
-    if (e !== mario && e.isSolid && isNear(mario, e, 400)) {
-      if (isColliding(mario, e)) {
-        const result = resolveCollision(mario, e);
+    const name = e.constructor && e.constructor.name;
 
-        if (!result) return;
+    // Only update movers (Goomba/Mushroom) when within active band.
+    // Always update Mario and other entities.
+    if (name === "Goomba" || name === "Mushroom") {
+      e._active = isInActiveBand(e);       // cache flag for later collision phase
+      if (name === "Goomba" && e.dead) {
+        // let dead goombas finish their death timer/removal
+        e.update(deltaTime);
+      } else if (e._active) {
+        e.update(deltaTime);
+      } else {
+        // Skip physics when far off-screen.
+        // (Optional) If your mover has animation timers you want ticking, tick them here.
+      }
+    } else {
+      e.update(deltaTime);
+    }
+  });
 
-        // Mario landed on something
-        if (result.axis === "y" && result.side === "bottom") {
-          mario.onGround = true;
-          mario.isJumping = false;
-        }
 
-        // Mario hit something from below
-        else if (result.axis === "y" && result.side === "top") {
-          if (e.constructor.name === "QuestionBlock" && !e.used) {
-            if (e.hit()) {
-              gameState.coins += 1;
-              gameState.score += 200;
+  // --- 1) Single classification pass + inline non-solid interactions ---
+  const solids = [];
+  const movers = [];       // Goombas + Mushrooms for wall/ground resolving
+
+
+  // You can also pre-cull by camera here if you want:
+  // const camLeft = camera.x - 2*TILE_SIZE, camRight = camera.x + camera.width + 2*TILE_SIZE;
+
+  mario.onGround = false;  // will be set true during solid resolution
+
+  for (let i = 0; i < entities.length; i++) { //SAVING ALL THE ENTITIES IN THEIR APROPRIATE SECTION
+    const e = entities[i];
+    if (e === mario) continue;
+
+    // Collect solids for the two collision phases
+    if (e.isSolid) {
+      solids.push(e);
+      continue; // solids handled in phase 2a
+    }
+
+    // Non-solid movers (need wall/ground collisions) -> collect for 2b
+    const name = e.constructor && e.constructor.name;
+
+    // Skip dead goombas right away
+    if (name === "Goomba" && e.dead) continue;
+
+    // Collect movers (Goombas + Mushrooms)
+    if (name === "Goomba" || name === "Mushroom") {
+      movers.push(e);
+    }
+
+    // ---- Non-solid Mario interactions: do them here, once ----
+    if (!mario.dead) {
+      // Mario vs Goomba: stomp/damage
+      if (name === "Goomba" && !e.dead) {
+        if (isColliding(mario, e)) {
+          const dx = (mario.x + mario.width / 2) - (e.x + e.width / 2);
+          const dy = (mario.y + mario.height / 2) - (e.y + e.height / 2);
+          const halfW = (mario.width + e.width) / 2;
+          const halfH = (mario.height + e.height) / 2;
+          const overlapX = halfW - Math.abs(dx);
+          const overlapY = halfH - Math.abs(dy);
+
+          const marioAbove = dy < 0;
+          const verticalHit = overlapY > 0 && overlapY <= overlapX;
+
+          if (verticalHit && marioAbove && mario.vy > 0) {
+            e.stomp();
+            gameState.score += 100;
+            mario.vy = JUMP_FORCE * 0.35;
+            mario.onGround = false;
+            mario.isJumping = true;
+          } else {
+            const outcome = mario.takeDamage(Math.sign(dx));
+            if (outcome === "dead") {
+              gameState.lives = Math.max(0, gameState.lives - 1);
             }
           }
         }
       }
-    }
-  });
 
-  // === Goomba vs solids (ground + walls) ===
-  entities.forEach((mover) => {
-    if (mover.constructor && mover.constructor.name === "Goomba") {
-      mover.onGround = false;
-
-      entities.forEach((sol) => {
-        if (sol !== mover && sol.isSolid && isNear(mover, sol, 400)) {
-          if (isColliding(mover, sol)) {
-            const r = resolveCollision(mover, sol);
-            if (!r) return;
-
-            if (r.axis === "y" && r.side === "bottom") {
-              mover.onGround = true; // landed
-            }
-
-            // ←→ hit a wall: flip direction (with tiny nudge + cooldown)
-            if (r.axis === "x") {
-              if (mover.flipCooldown <= 0) {
-                mover.dir *= -1;
-                mover.flipCooldown = 0.12; // ~120ms
-                // nudge away from wall to prevent re-colliding same frame
-                mover.x += r.side === "left" ? 0.5 : -0.5;
-              }
-            }
-          }
-        }
-      });
-    }
-  });
-
-  // === Mario vs Goombas: stomp to kill (vy > 0 from above) ===
-  entities.forEach((e) => {
-    if (e.constructor && e.constructor.name === "Goomba" && !e.dead) {
-      if (isColliding(mario, e)) {
-        // Determine vertical vs horizontal by comparing center overlaps (no extra moves)
-        const dx = mario.x + mario.width / 2 - (e.x + e.width / 2);
-        const dy = mario.y + mario.height / 2 - (e.y + e.height / 2);
-        const halfW = (mario.width + e.width) / 2;
-        const halfH = (mario.height + e.height) / 2;
-        const overlapX = halfW - Math.abs(dx);
-        const overlapY = halfH - Math.abs(dy);
-
-        // Stomp if vertical overlap is the resolving axis AND Mario is above AND moving downward
-        const marioAbove = dy < 0;
-        const verticalHit = overlapY > 0 && overlapY <= overlapX;
-
-        if (verticalHit && marioAbove && mario.vy > 0) {
-          // stomp!
-          e.stomp();
-          gameState.score += 100;
-          // small bounce
-          mario.vy = JUMP_FORCE * 0.35; // tweak bounce strength as desired
-          mario.onGround = false;
-          mario.isJumping = true;
-        } else {
-          const outcome = mario.takeDamage();
-          if (outcome === "dead") {
-            gameState.lives = Math.max(0, gameState.lives - 1);
-            // Optional: trigger a respawn or level reset here.
-            // For now Mario will play the death hop and you can reset after a delay.
-          }
+      // Mario vs Mushroom: power-up
+      if (name === "Mushroom") {
+        if (isColliding(mario, e)) {
+          if (typeof mario.setSize === "function") mario.setSize(2);
+          else { mario.size = 2; mario.width = 16; mario.height = 32; }
+          mario.invincibleTimer = 0.2; // optional tiny grace
+          gameState.score += 1000;
+          e.remove = true;
         }
       }
-    }
-  });
 
-  // Coin collection
-  entities.forEach((e) => {
-    if (e.constructor.name === "Coin" && !e.collected) {
-      if (isColliding(mario, e)) {
-        e.collected = true;
-        gameState.coins += 1;
-        gameState.score += 200; //Points
+      // Mario vs Coin: collect
+      if (name === "Coin" && !e.collected) {
+        if (isColliding(mario, e)) {
+          e.collected = true;
+          gameState.coins += 1;
+          gameState.score += 200;
+          // optionally: e.remove = true; (to fully purge from entities)
+        }
       }
-    }
-  });
-
-  // Cleanup: remove flagged entities (dead goombas, etc.)
-  for (let i = entities.length - 1; i >= 0; i--) {
-    if (entities[i].remove) {
-      entities.splice(i, 1);
     }
   }
 
-  // Timer update (smooth)
+  // --- 2a) Mario vs solids (includes question/brick logic) ---
+  if (!mario.dead) {
+    for (let i = 0; i < solids.length; i++) {
+      const s = solids[i];
+      if (!isNear(mario, s, 400)) continue; //Optimization for preformance
+      if (!isColliding(mario, s)) continue; //Checker that collision is happening (safety)
+
+      const result = resolveCollision(mario, s);
+      if (!result) continue;
+
+      if (result.axis === "y" && result.side === "bottom") { //Colisions from mario hitting the top (jump enableing)
+        mario.onGround = true;
+        mario.isJumping = false;
+      } else if (result.axis === "y" && result.side === "top") { //Colisions from mario hitting the bottom
+        const name = s.constructor && s.constructor.name;
+
+        // Coin question block
+        if (name === "QuestionBlock" && !s.used) { //Hiting Question Block that gives coin
+          if (s.hit()) {
+            gameState.coins += 1;
+            gameState.score += 200;
+          }
+        }
+        // Mushroom question block
+        else if (name === "QuestionBlockM" && !s.used) { //Hiting Question Block that spawn Mushroom
+          const res = s.hit();
+          if (res && res.spawn && res.spawn.kind === "mushroom") {
+            entities.push(new Mushroom(res.spawn.x, res.spawn.startY, res.spawn.targetY));
+          }
+        }
+        // Brick
+        else if (name === "Brick") { // Destroying Brick
+          s.hit();
+        }
+      }
+    }
+  }
+
+  // === Movers vs solids (Goombas + Mushrooms) ===
+entities.forEach(mover => {
+  const name = mover.constructor && mover.constructor.name;
+  if (name === "Goomba" || name === "Mushroom") {
+
+    if (name === "Goomba" && mover.dead) return;   // dying ones ignore collisions
+    if (!mover._active) return;                    // <- skip if outside active band
+
+    mover.onGround = false;
+
+    entities.forEach(sol => {
+      if (sol !== mover && sol.isSolid && isNear(mover, sol, 400)) {
+        if (isColliding(mover, sol)) {
+          const r = resolveCollision(mover, sol);
+          if (!r) return;
+
+          if (r.axis === "y" && r.side === "bottom") mover.onGround = true;
+
+          if (r.axis === "x" && mover.dir != null) {
+            if (mover.flipCooldown == null) mover.flipCooldown = 0;
+            if (mover.flipCooldown <= 0) {
+              mover.dir *= -1;
+              mover.flipCooldown = 0.12;
+              mover.x += (r.side === "left" ? 0.5 : -0.5);
+            }
+          }
+        }
+      }
+    });
+
+    if (mover.flipCooldown && mover.flipCooldown > 0) {
+      mover.flipCooldown -= deltaTime;
+      if (mover.flipCooldown < 0) mover.flipCooldown = 0;
+    }
+  }
+});
+
+
+  // --- 3) Cleanup ---
+  for (let i = entities.length - 1; i >= 0; i--) {
+    if (entities[i].remove) entities.splice(i, 1);
+  }
+
+  // --- 4) Timer & camera ---
   gameState.time -= deltaTime;
   if (gameState.time < 0) gameState.time = 0;
 
-  // Move camera forward if Mario passes the right edge
   if (mario.x - camera.x > camera.width / 2) {
     camera.x += RENDER_SCALE;
   }
-
-  // Clamp so camera never moves left
-  if (camera.x < 0) {
-    camera.x = 0;
-  }
+  if (camera.x < 0) camera.x = 0;
 }
+
 
 function render() {
   ctx.fillStyle = "#5c94fc";

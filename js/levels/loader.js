@@ -1,7 +1,9 @@
 // js/levels/loader.js
 import { Block } from "../entities/block.js";
+import { Brick } from "../entities/brick.js";
 import { Mario } from "../entities/mario.js";
 import { QuestionBlock } from "../entities/questionBlock.js";
+import { QuestionBlockM } from "../entities/questionBlockM.js";
 import { Coin } from "../entities/coin.js";
 import { PipeLT } from "../entities/pipeLT.js";
 import { PipeRT } from "../entities/pipeRT.js";
@@ -30,6 +32,9 @@ export function loadLevel(levelData) {
           break;
 
         case "b":
+          entities.push(new Brick(x, y, TILE_SIZE));
+          break;
+        case "f":
           entities.push(new Block(x, y, TILE_SIZE));
           break;
 
@@ -37,6 +42,10 @@ export function loadLevel(levelData) {
           entities.push(new QuestionBlock(x, y, TILE_SIZE));
           break;
 
+        case "qm":
+          entities.push(new QuestionBlockM(x, y, TILE_SIZE));
+          break;
+          
         case "c":
           entities.push(new Coin(x, y, TILE_SIZE));
           break;
@@ -61,6 +70,8 @@ export function loadLevel(levelData) {
           // spawn Goomba with feet on this tile
           entities.push(new Goomba(x, y - TILE_SIZE));
           break;
+
+
 
         default:
           break;

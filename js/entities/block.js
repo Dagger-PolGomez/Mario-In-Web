@@ -14,11 +14,11 @@ export class Block extends Entity {
     // Static
   }
 
-  render(ctx,img) {
+  render(ctx, img) {
     img.src = "./media/BlocksSpriteSheet.png"
     ctx.drawImage(img,
-      this.SSx*160,this.SSy*160,
-      160,160,
+      this.SSx * 160, this.SSy * 160,
+      160, 160,
       this.x * RENDER_SCALE,
       this.y * RENDER_SCALE,
       this.width * RENDER_SCALE,
