@@ -16,21 +16,21 @@ export class QuestionBlockM extends Entity {
     this.SSy = 1; // row of blocks/questions
   }
 
-  hit() {
+  hit(marioSize) {
     if (this.used) return null;
     this.used = true;
-    this.SSx = 1; // switch to "empty" sprite in sheet
-    this.SSy = 2; // switch to "empty" sprite in sheet
-    this.bounceSpeed = -3;  // bounce anim
+    this.SSx = 3; // switch to "empty" sprite in sheet
+    this.SSy = 0; // switch to "empty" sprite in sheet
+    this.bounceSpeed = -3; // bounce anim
 
     // tell game to spawn a mushroom
     return {
       spawn: {
         kind: "mushroom",
         x: this.x,
-        startY: this.y,           // emerge from inside block
-        targetY: this.y - this.height // finish one tile above
-      }
+        startY: this.y, // emerge from inside block
+        targetY: this.y - this.height, // finish one tile above
+      },
     };
   }
 
@@ -38,7 +38,10 @@ export class QuestionBlockM extends Entity {
     if (this.bounceSpeed !== 0 || this.bounceY !== 0) {
       this.bounceY += this.bounceSpeed;
       this.bounceSpeed += 0.5;
-      if (this.bounceY > 0) { this.bounceY = 0; this.bounceSpeed = 0; }
+      if (this.bounceY > 0) {
+        this.bounceY = 0;
+        this.bounceSpeed = 0;
+      }
     }
   }
 
@@ -49,10 +52,14 @@ export class QuestionBlockM extends Entity {
 
     ctx.drawImage(
       img,
-      this.SSx * 160, this.SSy * 160,
-      160, 160,
-      drawX, drawY,
-      this.width * RENDER_SCALE, this.height * RENDER_SCALE
+      this.SSx * 160,
+      this.SSy * 160,
+      160,
+      160,
+      drawX,
+      drawY,
+      this.width * RENDER_SCALE,
+      this.height * RENDER_SCALE
     );
   }
 }

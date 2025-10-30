@@ -19,8 +19,8 @@ export class Mushroom extends Entity {
     this.vy = 0;
 
     // temp sprite indices (adjust to your sheet)
-    this.SSx = 2;
-    this.SSy = 2;
+    this.SSx = 3;
+    this.SSy = 1;
   }
 
   update(deltaTime) {

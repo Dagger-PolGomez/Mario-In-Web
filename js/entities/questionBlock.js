@@ -7,21 +7,21 @@ export class QuestionBlock extends Entity {
     super(x, y, size, size);
     this.isSolid = true;
 
-    this.used = false;      // has Mario already hit it?
-    this.bounceY = 0;       // small upward bounce offset
-    this.bounceSpeed = 0;   // animation control
+    this.used = false; // has Mario already hit it?
+    this.bounceY = 0; // small upward bounce offset
+    this.bounceSpeed = 0; // animation control
 
     // sprite sheet position
     this.SSx = 0;
     this.SSy = 1;
   }
 
-  hit() {
+  hit(marioSize) {
     if (this.used) return false;
 
     this.used = true;
-    this.SSx = 1; // switch to "empty" sprite in sheet
-    this.SSy = 2; // switch to "empty" sprite in sheet
+    this.SSx = 3; // switch to "empty" sprite in sheet
+    this.SSy = 0; // switch to "empty" sprite in sheet
     this.bounceSpeed = -3; // quick upward bounce
 
     return true; // signal that Mario got a reward
@@ -49,7 +49,8 @@ export class QuestionBlock extends Entity {
       img,
       this.SSx * 160,
       this.SSy * 160,
-      160, 160,
+      160,
+      160,
       drawX,
       drawY,
       this.width * RENDER_SCALE,

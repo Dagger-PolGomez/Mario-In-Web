@@ -52,7 +52,7 @@ export class Mario extends Entity {
     this.frameTick = 0;
 
     // which bank we’re using (big/small)
-    this.size = 2; // 2 => big (16x32), 1 => small (16x16)
+    this.size = 1; // 2 => big (16x32), 1 => small (16x16)
     this.bank = "big"; // "big" | "small"
     this.srcH = SRC_H_BIG; // 320 for big, 160 for small
 
@@ -61,7 +61,7 @@ export class Mario extends Entity {
     this.SSy = MARIO_ANIM.big.idle.row;
 
     // initial apply
-    this.setSize(2); // start big; call setSize(1) to go small
+    this.setSize(1); // start big; call setSize(1) to go small
   }
 
   setSize(newSize) {
@@ -225,6 +225,13 @@ export class Mario extends Entity {
       this.vy = -220; // death hop
       return "dead";
     }
+  }
+  
+
+  death(){
+    this.dead = true;
+      this.vx = 0;
+      this.vy = -220; // death hop
   }
 
 }

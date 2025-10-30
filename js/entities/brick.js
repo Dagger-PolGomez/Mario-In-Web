@@ -14,10 +14,11 @@ export class Brick extends Entity {
         if (this.deathTimer <= 0) this.remove = true;
     }
 
-    hit() {
-
-        this.remove = true;
-
+    hit(marioSize) {
+        if(marioSize == 2)
+            {
+         this.remove = true;
+        }
     }
 
 
