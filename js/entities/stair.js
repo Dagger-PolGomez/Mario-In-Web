@@ -1,0 +1,28 @@
+// js/entities/block.js
+import { Entity } from "./entity.js";
+import { RENDER_SCALE } from "../utils/constants.js";
+
+export class Stair extends Entity {
+  constructor(x, y, size = 16) {
+    super(x, y, size, size);
+    this.isSolid = true;
+    this.SSx = 1;
+    this.SSy = 2;
+  }
+
+  update(deltaTime) {
+    // Static
+  }
+
+  render(ctx, img) {
+    img.src = "./media/BlocksSpriteSheet.png"
+    ctx.drawImage(img,
+      this.SSx * 160, this.SSy * 160,
+      160, 160,
+      this.x * RENDER_SCALE,
+      this.y * RENDER_SCALE,
+      this.width * RENDER_SCALE,
+      this.height * RENDER_SCALE
+    );
+  }
+}

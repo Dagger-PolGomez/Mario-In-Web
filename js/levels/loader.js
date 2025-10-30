@@ -1,5 +1,6 @@
 // js/levels/loader.js
 import { Block } from "../entities/block.js";
+import { Stair } from "../entities/stair.js";
 import { Brick } from "../entities/brick.js";
 import { Mario } from "../entities/mario.js";
 import { QuestionBlock } from "../entities/questionBlock.js";
@@ -34,8 +35,12 @@ export function loadLevel(levelData) {
         case "b":
           entities.push(new Brick(x, y, TILE_SIZE));
           break;
+
         case "f":
           entities.push(new Block(x, y, TILE_SIZE));
+          break;
+        case "s":
+          entities.push(new Stair(x, y, TILE_SIZE));
           break;
 
         case "q":
@@ -45,7 +50,7 @@ export function loadLevel(levelData) {
         case "qm":
           entities.push(new QuestionBlockM(x, y, TILE_SIZE));
           break;
-          
+
         case "c":
           entities.push(new Coin(x, y, TILE_SIZE));
           break;
