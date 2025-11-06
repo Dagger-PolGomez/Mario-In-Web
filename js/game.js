@@ -280,6 +280,7 @@ function update(deltaTime) {
     mario.vx = 0;
     mario.leftLock = true;
     mario.movementLock = true;
+    AudioManager.stopMusic();
     // you can also stop camera here if you want
     setTimeout(() => {
       location.reload(); // or load next level
