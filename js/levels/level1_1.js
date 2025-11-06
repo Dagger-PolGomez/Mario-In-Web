@@ -30,5 +30,6 @@ pLT/pRT/pL/pR = Pipe pieces
 g = Goomba
 f = floor
 qm = Question Block with Mushroom
+p = flagpole
 */
 };

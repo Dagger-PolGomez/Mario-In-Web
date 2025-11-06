@@ -87,6 +87,8 @@ export class Mario extends Entity {
     this.frameTick = 0;
     this.SSx = 0;
     this.SSy = MARIO_ANIM[this.bank].idle.row;
+
+    this.movementLock = false;
   }
 
   update(deltaTime) {
@@ -104,56 +106,57 @@ export class Mario extends Entity {
     }
     this.vx = 0;
 
-    // movement
-    let isMoving = false;
-    if (isKeyDown("ArrowRight")) {
-      this.vx = MOVE_SPEED;
-      this.renderDir = 1;
-      isMoving = true;
-    }
-    if (isKeyDown("ArrowLeft")) {
-      this.vx = -MOVE_SPEED;
-      this.renderDir = -1;
-      isMoving = true;
-    }
-    this.running = isMoving;
-
-    // jump
-    if (isKeyDown("ArrowUp") && this.onGround) {
-      this.vy = JUMP_FORCE;
-      this.onGround = false;
-      this.isJumping = true;
-      this.jumpTime = 0;
-      AudioManager.playSfx("./media/sfx/jump.wav");
-    }
-    if (this.isJumping && isKeyDown("ArrowUp")) {
-      this.jumpTime += deltaTime;
-      if (this.jumpTime < MAX_JUMP_TIME) this.vy += JUMP_HOLD * deltaTime;
-    }
-    if (!isKeyDown("ArrowUp") && this.onGround) this.isJumping = false;
-
-    // pick animation row/frame
-    if (this.isJumping) {
-      this.SSy = MARIO_ANIM[this.bank].jump.row;
-      this.SSx = MARIO_ANIM[this.bank].jump.frames[0]; // single frame
-    } else if (this.running) {
-      const run = MARIO_ANIM[this.bank].run;
-      this.SSy = run.row;
-      this.frameTick++;
-      if (this.frameTick > 5) {
-        // advance every 6 ticks
-        this.frameTick = 0;
-        this.curFrame = (this.curFrame + 1) % run.frames.length;
+    if (!this.movementLock) {
+      // movement
+      let isMoving = false;
+      if (isKeyDown("ArrowRight")) {
+        this.vx = MOVE_SPEED;
+        this.renderDir = 1;
+        isMoving = true;
       }
-      this.SSx = run.frames[this.curFrame];
-    } else {
-      const idle = MARIO_ANIM[this.bank].idle;
-      this.SSy = idle.row;
-      this.SSx = idle.frames[0];
-      this.curFrame = 0;
-      this.frameTick = 0;
-    }
+      if (isKeyDown("ArrowLeft")) {
+        this.vx = -MOVE_SPEED;
+        this.renderDir = -1;
+        isMoving = true;
+      }
+      this.running = isMoving;
 
+      // jump
+      if (isKeyDown("ArrowUp") && this.onGround) {
+        this.vy = JUMP_FORCE;
+        this.onGround = false;
+        this.isJumping = true;
+        this.jumpTime = 0;
+        AudioManager.playSfx("./media/sfx/jump.wav");
+      }
+      if (this.isJumping && isKeyDown("ArrowUp")) {
+        this.jumpTime += deltaTime;
+        if (this.jumpTime < MAX_JUMP_TIME) this.vy += JUMP_HOLD * deltaTime;
+      }
+      if (!isKeyDown("ArrowUp") && this.onGround) this.isJumping = false;
+
+      // pick animation row/frame
+      if (this.isJumping) {
+        this.SSy = MARIO_ANIM[this.bank].jump.row;
+        this.SSx = MARIO_ANIM[this.bank].jump.frames[0]; // single frame
+      } else if (this.running) {
+        const run = MARIO_ANIM[this.bank].run;
+        this.SSy = run.row;
+        this.frameTick++;
+        if (this.frameTick > 5) {
+          // advance every 6 ticks
+          this.frameTick = 0;
+          this.curFrame = (this.curFrame + 1) % run.frames.length;
+        }
+        this.SSx = run.frames[this.curFrame];
+      } else {
+        const idle = MARIO_ANIM[this.bank].idle;
+        this.SSy = idle.row;
+        this.SSx = idle.frames[0];
+        this.curFrame = 0;
+        this.frameTick = 0;
+      }
+    }
     // gravity + integrate
     this.vy += GRAVITY * deltaTime;
     super.update(deltaTime);

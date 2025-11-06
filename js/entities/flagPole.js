@@ -4,23 +4,25 @@ import { RENDER_SCALE } from "../utils/constants.js";
 
 export class FlagPole extends Entity {
   constructor(x, y, height = 16 * 4) {
-    // width is narrow, height can be taller
-    super(x, y, 16, height);
-    this.isSolid = false;  // we only detect overlap
-    this.SSx = 0;
-    this.SSy = 0;
+    // collision box is shifted 8px to the right
+    // so Mario "hits" the middle of the pole
+    super(x + 8, y, 16, height);
+
+    this.renderX = x;       // where we actually draw it
+    this.renderY = y;
+    this.isSolid = false;
   }
 
   update(deltaTime) {
-    // flagpole is static
+    // static
   }
 
   render(ctx, img) {
-    // temp render: white pole
+    // draw at original spot
     ctx.fillStyle = "white";
     ctx.fillRect(
-      this.x * RENDER_SCALE,
-      this.y * RENDER_SCALE,
+      this.renderX * RENDER_SCALE,
+      this.renderY * RENDER_SCALE,
       this.width * RENDER_SCALE,
       this.height * RENDER_SCALE
     );

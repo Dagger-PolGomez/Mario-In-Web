@@ -1,8 +1,8 @@
 // js/audio/audioManager.js
 export const AudioManager = {
   music: null,
-  musicVolume: 0.3,
-  sfxVolume: 0.3,
+  musicVolume: 1,
+  sfxVolume: 1,
 
   playMusic(src) {
     // if same music, do nothing

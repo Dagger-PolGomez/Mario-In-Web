@@ -48,8 +48,6 @@ window.addEventListener("click", startMusicOnce);
 window.addEventListener("keydown", startMusicOnce);
 
 function update(deltaTime) {
-  console.log(mario.x);
-
   // Lock left movement if Mario is at the left edge of the camera
   mario.leftLock = mario.x <= camera.x + 0.01;
 
@@ -162,10 +160,9 @@ function update(deltaTime) {
       }
 
       // Mario vs Flagpole: end
-      if (name === "FlagPole") {
+      if (!gameState.levelComplete && name === "FlagPole") {
         if (isColliding(mario, e)) {
           gameState.levelComplete = true;
-          // optional SFX
           AudioManager.playSfx("./media/sfx/levelclear.wav");
         }
       }
@@ -282,10 +279,11 @@ function update(deltaTime) {
   if (gameState.levelComplete) {
     mario.vx = 0;
     mario.leftLock = true;
+    mario.movementLock = true;
     // you can also stop camera here if you want
     setTimeout(() => {
       location.reload(); // or load next level
-    }, 2000);
+    }, 6000);
   }
 
   // Simple death reload
