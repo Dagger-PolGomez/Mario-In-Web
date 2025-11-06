@@ -11,6 +11,8 @@ import {
   BLINK_RATE,
 } from "../utils/constants.js";
 
+import { AudioManager } from "../audio/audioManager.js";
+
 // Sprite atlas parameters (adjust SSy rows to your sheet if needed)
 const SRC_W = 160;
 const SRC_H_SMALL = 160;
@@ -122,6 +124,7 @@ export class Mario extends Entity {
       this.onGround = false;
       this.isJumping = true;
       this.jumpTime = 0;
+      AudioManager.playSfx("./media/sfx/jump.wav");
     }
     if (this.isJumping && isKeyDown("ArrowUp")) {
       this.jumpTime += deltaTime;
@@ -213,8 +216,8 @@ export class Mario extends Entity {
     if (this.size === 2) {
       this.setSize(1);
       this.y += 8;
-
       this.invincibleTimer = INVINCIBLE_TIME; // reuse your existing i-frames only
+      AudioManager.playSfx("./media/sfx/damage.wav");
       return "shrunk";
     }
 
@@ -226,12 +229,10 @@ export class Mario extends Entity {
       return "dead";
     }
   }
-  
 
-  death(){
+  death() {
     this.dead = true;
-      this.vx = 0;
-      this.vy = -220; // death hop
+    this.vx = 0;
+    this.vy = -220; // death hop
   }
-
 }

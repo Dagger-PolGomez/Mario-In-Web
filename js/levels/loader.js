@@ -12,6 +12,7 @@ import { PipeR } from "../entities/pipeR.js";
 import { PipeL } from "../entities/pipeL.js";
 import { Goomba } from "../entities/goomba.js";
 import { TILE_SIZE } from "../utils/constants.js";
+import { FlagPole } from "../entities/flagPole.js";
 
 export function loadLevel(levelData) {
   const entities = [];
@@ -75,8 +76,9 @@ export function loadLevel(levelData) {
           // spawn Goomba with feet on this tile
           entities.push(new Goomba(x, y - TILE_SIZE));
           break;
-
-
+        case "p":
+          entities.push(new FlagPole(x, y - TILE_SIZE * 7, TILE_SIZE * 8));
+          break;
 
         default:
           break;

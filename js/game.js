@@ -4,6 +4,7 @@ import { loadLevel } from "./levels/loader.js";
 import { level1_1 } from "./levels/level1_1.js";
 import { RENDER_SCALE, JUMP_FORCE } from "./utils/constants.js";
 import { Mushroom } from "./entities/mushroom.js";
+import { AudioManager } from "./audio/audioManager.js";
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -29,15 +30,28 @@ let camera = {
 function isInActiveBand(e) {
   const activeLeft = camera.x - camera.width * 0.25;
   const activeRight = camera.x + camera.width * 1.25;
-  return (e.x + e.width) > activeLeft && e.x < activeRight;
+  return e.x + e.width > activeLeft && e.x < activeRight;
 }
 
 // Load the level
 const { entities, mario } = loadLevel(level1_1);
+// === Music (starts only after first user interaction) ===
+let musicStarted = false;
+function startMusicOnce() {
+  if (musicStarted) return;
+  musicStarted = true;
+  AudioManager.playMusic("./media/sfx/overworld.wav");
+  window.removeEventListener("click", startMusicOnce);
+  window.removeEventListener("keydown", startMusicOnce);
+}
+window.addEventListener("click", startMusicOnce);
+window.addEventListener("keydown", startMusicOnce);
 
 function update(deltaTime) {
+  console.log(mario.x);
+
   // Lock left movement if Mario is at the left edge of the camera
-  mario.leftLock = (mario.x <= camera.x + 0.01);
+  mario.leftLock = mario.x <= camera.x + 0.01;
 
   // 0) Tick all entities (movement integration etc.)
   entities.forEach((e) => {
@@ -69,7 +83,9 @@ function update(deltaTime) {
     const e = entities[i];
     if (e.y > 300) {
       if (e === mario) {
-        if (typeof mario.death === "function") mario.death();
+        if (typeof mario.death === "function") {
+          mario.death();
+        }
         continue;
       }
       e.remove = true;
@@ -107,6 +123,8 @@ function update(deltaTime) {
             mario.onGround = false;
             mario.isJumping = true;
             mario.invincibleTimer = 1 / 15;
+
+            AudioManager.playSfx("./media/sfx/stomp.wav");
           } else {
             const outcome = mario.takeDamage();
             if (outcome === "dead") {
@@ -128,6 +146,7 @@ function update(deltaTime) {
           mario.invincibleTimer = 0.2; // tiny grace
           gameState.score += 1000;
           e.remove = true;
+          AudioManager.playSfx("./media/sfx/powerup.wav");
         }
       }
 
@@ -137,7 +156,17 @@ function update(deltaTime) {
           e.collected = true;
           gameState.coins += 1;
           gameState.score += 200;
-          // optionally: e.remove = true;
+          e.remove = true;
+          AudioManager.playSfx("./media/sfx/coin.wav");
+        }
+      }
+
+      // Mario vs Flagpole: end
+      if (name === "FlagPole") {
+        if (isColliding(mario, e)) {
+          gameState.levelComplete = true;
+          // optional SFX
+          AudioManager.playSfx("./media/sfx/levelclear.wav");
         }
       }
     }
@@ -168,18 +197,27 @@ function update(deltaTime) {
           if (s.hit(mario.size)) {
             gameState.coins += 1;
             gameState.score += 200;
+            AudioManager.playSfx("./media/sfx/bump.wav");
           }
         }
         // Mushroom question block
         else if (name === "QuestionBlockM" && !s.used) {
           const res = s.hit(mario.size);
           if (res && res.spawn && res.spawn.kind === "mushroom") {
-            entities.push(new Mushroom(res.spawn.x, res.spawn.startY, res.spawn.targetY));
+            entities.push(
+              new Mushroom(res.spawn.x, res.spawn.startY, res.spawn.targetY)
+            );
+            AudioManager.playSfx("./media/sfx/powerupappears.wav");
           }
         }
         // Brick
         else if (name === "Brick") {
-          s.hit(mario.size);
+          if (mario.size == 2) {
+            s.hit();
+            AudioManager.playSfx("./media/sfx/bricksmash.wav");
+          } else {
+            AudioManager.playSfx("./media/sfx/bump.wav");
+          }
         }
       }
     }
@@ -203,7 +241,6 @@ function update(deltaTime) {
             if (r.axis === "y" && r.side === "bottom") mover.onGround = true;
 
             if (r.axis === "x" && mover.dir != null) {
-
               if (mover.flipCooldown == null) mover.flipCooldown = 0;
 
               if (mover.flipCooldown <= 0) {
@@ -240,6 +277,16 @@ function update(deltaTime) {
 
   // Prevent Mario from moving left off-camera due to collisions
   if (mario.x < camera.x) mario.x = camera.x;
+
+  // Level complete_ stop Mario and finish
+  if (gameState.levelComplete) {
+    mario.vx = 0;
+    mario.leftLock = true;
+    // you can also stop camera here if you want
+    setTimeout(() => {
+      location.reload(); // or load next level
+    }, 2000);
+  }
 
   // Simple death reload
   if (mario.dead) {
