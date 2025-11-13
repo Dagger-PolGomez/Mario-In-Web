@@ -2,7 +2,7 @@
 import { Entity } from "./entity.js";
 import { RENDER_SCALE } from "../utils/constants.js";
 
-export class FlagPole extends Entity {
+export class FlagPoleTop extends Entity {
   constructor(x, y, height = 16 * 4) {
     // collision box is shifted 8px to the right
     // so Mario "hits" the middle of the pole
@@ -13,7 +13,7 @@ export class FlagPole extends Entity {
     this.isSolid = false;
 
     this.SSx = 4;
-    this.SSy = 1;
+    this.SSy = 0;
   }
 
   update(deltaTime) {

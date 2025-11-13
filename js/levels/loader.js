@@ -13,6 +13,7 @@ import { PipeL } from "../entities/pipeL.js";
 import { Goomba } from "../entities/goomba.js";
 import { TILE_SIZE } from "../utils/constants.js";
 import { FlagPole } from "../entities/flagPole.js";
+import { FlagPoleTop } from "../entities/flagpoleT.js";
 
 export function loadLevel(levelData) {
   const entities = [];
@@ -77,7 +78,12 @@ export function loadLevel(levelData) {
           entities.push(new Goomba(x, y - TILE_SIZE));
           break;
         case "p":
-          entities.push(new FlagPole(x, y - TILE_SIZE * 7, TILE_SIZE * 8));
+          entities.push(new FlagPoleTop(x, y - TILE_SIZE, TILE_SIZE));
+          for (let i = 1; i < 7; i++){
+            entities.push(new FlagPole(x, (y - TILE_SIZE)+i*TILE_SIZE, TILE_SIZE))
+          }
+          entities.push(new Stair(x, y+6*TILE_SIZE, TILE_SIZE));
+            
           break;
 
         default:

@@ -1,4 +1,5 @@
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   background-color: grey;
@@ -8,9 +9,10 @@ html, body {
 
 #gameCanvas {
   display: block;
-  margin: 0 auto;
+  margin-top: 50px;
+  margin-left: auto;
+  margin-right: auto;
   background: #5c94fc;
   image-rendering: pixelated; /* keeps pixel art sharp */
   border: solid 1px black;
-
 }

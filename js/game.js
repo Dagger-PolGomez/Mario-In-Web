@@ -162,6 +162,8 @@ function update(deltaTime) {
       // Mario vs Flagpole: end
       if (!gameState.levelComplete && name === "FlagPole") {
         if (isColliding(mario, e)) {
+          const center = e.x + e.width / 2;
+          mario.x = center - mario.width / 2;
           gameState.levelComplete = true;
           AudioManager.playSfx("./media/sfx/levelclear.wav");
         }
