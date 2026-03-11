@@ -10,6 +10,14 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const img = new Image();
 
+const pauseButton = {
+  x: canvas.width / 2 - 80,
+  y: canvas.height / 2 + 20,
+  w: 160,
+  h: 50,
+  hover: false
+};
+
 let lastTime = 0;
 
 let gameState = {
@@ -17,6 +25,7 @@ let gameState = {
   coins: 0,
   lives: 3,
   time: 400,
+  paused: false,
 };
 
 let camera = {
@@ -35,6 +44,49 @@ function isInActiveBand(e) {
 
 // Load the level
 const { entities, mario } = loadLevel(level1_1);
+
+
+
+// Pause toggle
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    gameState.paused = !gameState.paused;
+  }
+});
+
+// Mouse event listeners for pause button
+canvas.addEventListener("mousemove", (e) => {
+  if (!gameState.paused) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  pauseButton.hover =
+    mx >= pauseButton.x &&
+    mx <= pauseButton.x + pauseButton.w &&
+    my >= pauseButton.y &&
+    my <= pauseButton.y + pauseButton.h;
+});
+
+canvas.addEventListener("click", (e) => {
+  if (!gameState.paused) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+
+  if (
+    mx >= pauseButton.x &&
+    mx <= pauseButton.x + pauseButton.w &&
+    my >= pauseButton.y &&
+    my <= pauseButton.y + pauseButton.h
+  ) {
+    gameState.paused = false;
+  }
+});
+
+
 // === Music (starts only after first user interaction) ===
 let musicStarted = false;
 function startMusicOnce() {
@@ -204,7 +256,7 @@ function update(deltaTime) {
           const res = s.hit(mario.size);
           if (res && res.spawn && res.spawn.kind === "mushroom") {
             entities.push(
-              new Mushroom(res.spawn.x, res.spawn.startY, res.spawn.targetY)
+              new Mushroom(res.spawn.x, res.spawn.startY, res.spawn.targetY),
             );
             AudioManager.playSfx("./media/sfx/powerupappears.wav");
           }
@@ -308,12 +360,20 @@ function render() {
 
   ctx.restore();
   renderUI();
+
+  if (gameState.paused) {
+    renderPauseMenu();
+  }
 }
 
 function gameLoop(timestamp) {
   const deltaTime = (timestamp - lastTime) / 1000;
   lastTime = timestamp;
-  update(deltaTime);
+
+  if (!gameState.paused) {
+    update(deltaTime);
+  }
+
   render();
   requestAnimationFrame(gameLoop);
 }
@@ -330,7 +390,7 @@ function renderUI() {
   ctx.fillText(
     gameState.score.toString().padStart(6, "0"),
     (canvas.width / 4) * 0 + 20,
-    40
+    40,
   );
 
   ctx.fillText(`COINS`, (canvas.width / 4) * 1 + 20, 20);
@@ -341,6 +401,31 @@ function renderUI() {
 
   ctx.fillText(`TIME`, (canvas.width / 4) * 3 + 20, 20);
   ctx.fillText(Math.floor(gameState.time), (canvas.width / 4) * 3 + 20, 40); // only whole numbers
+}
+
+function renderPauseMenu() {
+  ctx.save();
+
+  // overlay
+  ctx.fillStyle = "rgba(0,0,0,0.6)";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // title
+  ctx.fillStyle = "white";
+  ctx.font = "40px Arial";
+  ctx.textAlign = "center";
+  ctx.fillText("PAUSE", canvas.width / 2, canvas.height / 2 - 40);
+
+  // button
+  ctx.fillStyle = pauseButton.hover ? "#bbbbbb" : "#ffffff";
+  ctx.fillRect(pauseButton.x, pauseButton.y, pauseButton.w, pauseButton.h);
+
+  // button text
+  ctx.fillStyle = "black";
+  ctx.font = "20px Arial";
+  ctx.fillText("RESUME", canvas.width / 2, pauseButton.y + 32);
+
+  ctx.restore();
 }
 
 requestAnimationFrame(gameLoop);
