@@ -9,13 +9,14 @@ import { AudioManager } from "./audio/audioManager.js";
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 const img = new Image();
+let menuTime = 0;
 
 const pauseButton = {
   x: canvas.width / 2 - 80,
   y: canvas.height / 2 + 20,
   w: 160,
   h: 50,
-  hover: false
+  hover: false,
 };
 
 let lastTime = 0;
@@ -26,6 +27,9 @@ let gameState = {
   lives: 3,
   time: 400,
   paused: false,
+  screen: "menu", // "menu" | "playing"
+  levelComplete: false,
+  returningToMenu: false,
 };
 
 let camera = {
@@ -43,49 +47,101 @@ function isInActiveBand(e) {
 }
 
 // Load the level
-const { entities, mario } = loadLevel(level1_1);
+let entities = [];
+let mario = null;
 
+function resetGame() {
+  const loaded = loadLevel(level1_1);
+  entities = loaded.entities;
+  mario = loaded.mario;
 
+  gameState.score = 0;
+  gameState.coins = 0;
+  gameState.time = 400;
+  gameState.paused = false;
+  gameState.levelComplete = false;
+
+  camera.x = 0;
+  camera.y = 0;
+}
+
+const startButton = {
+  x: canvas.width / 2 - 100,
+  y: canvas.height / 2 + 20,
+  w: 200,
+  h: 60,
+  hover: false,
+};
 
 // Pause toggle
 window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") {
+  if (e.key === "Escape" && gameState.screen === "playing") {
     gameState.paused = !gameState.paused;
   }
 });
 
 // Mouse event listeners for pause button
 canvas.addEventListener("mousemove", (e) => {
-  if (!gameState.paused) return;
-
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
 
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  // Pause button hover
   pauseButton.hover =
+    gameState.paused &&
     mx >= pauseButton.x &&
     mx <= pauseButton.x + pauseButton.w &&
     my >= pauseButton.y &&
     my <= pauseButton.y + pauseButton.h;
+
+  // Start button hover
+  startButton.hover =
+    gameState.screen === "menu" &&
+    mx >= startButton.x &&
+    mx <= startButton.x + startButton.w &&
+    my >= startButton.y &&
+    my <= startButton.y + startButton.h;
 });
 
 canvas.addEventListener("click", (e) => {
-  if (!gameState.paused) return;
-
   const rect = canvas.getBoundingClientRect();
-  const mx = e.clientX - rect.left;
-  const my = e.clientY - rect.top;
 
-  if (
-    mx >= pauseButton.x &&
-    mx <= pauseButton.x + pauseButton.w &&
-    my >= pauseButton.y &&
-    my <= pauseButton.y + pauseButton.h
-  ) {
-    gameState.paused = false;
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  const mx = (e.clientX - rect.left) * scaleX;
+  const my = (e.clientY - rect.top) * scaleY;
+
+  // Main menu start button
+  if (gameState.screen === "menu") {
+    if (
+      mx >= startButton.x &&
+      mx <= startButton.x + startButton.w &&
+      my >= startButton.y &&
+      my <= startButton.y + startButton.h
+    ) {
+      resetGame();
+      gameState.screen = "playing";
+      return;
+    }
+  }
+
+  // Pause menu resume button
+  if (gameState.paused) {
+    if (
+      mx >= pauseButton.x &&
+      mx <= pauseButton.x + pauseButton.w &&
+      my >= pauseButton.y &&
+      my <= pauseButton.y + pauseButton.h
+    ) {
+      gameState.paused = false;
+    }
   }
 });
-
 
 // === Music (starts only after first user interaction) ===
 let musicStarted = false;
@@ -330,28 +386,32 @@ function update(deltaTime) {
   if (mario.x < camera.x) mario.x = camera.x;
 
   // Level complete_ stop Mario and finish
-  if (gameState.levelComplete) {
-    mario.vx = 0;
-    mario.leftLock = true;
-    mario.movementLock = true;
-    AudioManager.stopMusic();
-    // you can also stop camera here if you want
+  if (gameState.levelComplete && !gameState.returningToMenu) {
+    gameState.returningToMenu = true;
     setTimeout(() => {
-      location.reload(); // or load next level
-    }, 6000);
+      gameState.screen = "menu";
+      gameState.returningToMenu = false;
+    }, 2000);
   }
 
-  // Simple death reload
-  if (mario.dead) {
+  // Return to main menu after death
+  if (mario.dead && !gameState.returningToMenu) {
+    gameState.returningToMenu = true;
     setTimeout(() => {
-      location.reload();
+      gameState.screen = "menu";
+      gameState.returningToMenu = false;
     }, 2000);
   }
 }
 
 function render() {
   ctx.fillStyle = "#5c94fc";
-  ctx.fillRect(0, 0, canvas.width * 500, canvas.height);
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  if (gameState.screen === "menu") {
+    renderMainMenu();
+    return;
+  }
 
   ctx.save();
   ctx.translate(-camera.x * RENDER_SCALE, 0);
@@ -369,8 +429,9 @@ function render() {
 function gameLoop(timestamp) {
   const deltaTime = (timestamp - lastTime) / 1000;
   lastTime = timestamp;
+  menuTime += deltaTime;
 
-  if (!gameState.paused) {
+  if (gameState.screen === "playing" && !gameState.paused) {
     update(deltaTime);
   }
 
@@ -401,6 +462,63 @@ function renderUI() {
 
   ctx.fillText(`TIME`, (canvas.width / 4) * 3 + 20, 20);
   ctx.fillText(Math.floor(gameState.time), (canvas.width / 4) * 3 + 20, 40); // only whole numbers
+}
+
+function renderMainMenu() {
+  ctx.save();
+
+  // === Background (fake gradient effect) ===
+  ctx.fillStyle = "#5c94fc";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  ctx.fillStyle = "#4a7de0";
+  ctx.fillRect(0, canvas.height * 0.6, canvas.width, canvas.height * 0.4);
+
+  // === Title ===
+  ctx.textAlign = "center";
+
+  const floatY = Math.sin(menuTime * 2) * 5;
+  // shadow
+  ctx.fillStyle = "black";
+  ctx.font = "bold 60px Arial";
+  ctx.fillText("MARIO", canvas.width / 2 + 3, canvas.height / 2 - 80 + 3 + floatY);
+
+  // main text
+  ctx.fillStyle = "white";
+  ctx.fillText("MARIO", canvas.width / 2, canvas.height / 2 - 80 + floatY);
+
+  // subtitle
+  ctx.font = "20px Arial";
+  ctx.fillStyle = "white";
+  ctx.fillText("Press Start to Play", canvas.width / 2, canvas.height / 2 - 40);
+
+  // === Button (with hover animation) ===
+  const scale = startButton.hover ? 1.05 : 1;
+
+  const w = startButton.w * scale;
+  const h = startButton.h * scale;
+  const x = canvas.width / 2 - w / 2;
+  const y = startButton.y - (h - startButton.h) / 2;
+
+  // shadow
+  ctx.fillStyle = "rgba(0,0,0,0.4)";
+  ctx.fillRect(x + 4, y + 4, w, h);
+
+  // button
+  ctx.fillStyle = startButton.hover ? "#ffd700" : "#ffffff";
+  ctx.fillRect(x, y, w, h);
+
+  // border
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(x, y, w, h);
+
+  // text
+  ctx.fillStyle = "black";
+  ctx.font = "bold 24px Arial";
+  ctx.fillText("START", canvas.width / 2, y + h / 2 + 8);
+
+  ctx.restore();
 }
 
 function renderPauseMenu() {

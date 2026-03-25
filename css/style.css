@@ -1,18 +1,34 @@
-html,
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
 body {
-  margin: 0;
-  padding: 0;
-  background-color: grey;
-  height: 100%;
-  overflow: hidden;
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: radial-gradient(circle at top, #1a1a2e, #0f0f1a);
+	font-family: Arial, sans-serif;
 }
 
 #gameCanvas {
-  display: block;
-  margin-top: 50px;
-  margin-left: auto;
-  margin-right: auto;
-  background: #5c94fc;
-  image-rendering: pixelated; /* keeps pixel art sharp */
-  border: solid 1px black;
+	background: #5c94fc;
+	border-radius: 10px;
+
+	/* Neon border effect */
+	border: 2px solid #00f7ff;
+	box-shadow:
+		0 0 10px #00f7ff,
+		0 0 20px #00f7ff,
+		0 0 40px #00f7ff,
+		0 0 80px rgba(0, 247, 255, 0.5);
+
+	/* Responsive (without breaking aspect ratio) */
+	width: min(90vw, 900px);
+	height: auto;
+	aspect-ratio: 5 / 3;
+
+	image-rendering: pixelated;
 }
